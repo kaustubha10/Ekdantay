@@ -1,10 +1,7 @@
+```groovy
 pipeline {
 
     agent any
-
-    tools {
-        maven 'maven 3.9.16'
-    }
 
     environment {
         DOCKER_IMAGE = 'kaustubh10k/ekdantay'
@@ -20,6 +17,8 @@ pipeline {
 
         stage('Checkout') {
             steps {
+                echo 'Checking out Ekdantay source code...'
+
                 git branch: 'main',
                     url: 'https://github.com/kaustubha10/Ekdantay.git'
             }
@@ -139,3 +138,4 @@ pipeline {
         }
     }
 }
+```
