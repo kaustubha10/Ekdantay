@@ -5,8 +5,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'kaustubh10k/ekdantay'
 
-        NEXUS_REGISTRY = '13.201.22.239:8082'
-        NEXUS_IMAGE = '13.201.22.239:8082/ekdantay'
+        NEXUS_REGISTRY = 'localhost:8082'
+        NEXUS_IMAGE = 'localhost:8082/ekdantay'
 
         DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'
         NEXUS_CREDENTIALS = 'nexus-credentials'
@@ -75,42 +75,45 @@ pipeline {
             }
         }
 
-       stage('Nexus Login') {
-           steps {
-               withCredentials([usernamePassword(
-                   credentialsId: 'dockerhub-credentials',
-                   usernameVariable: 'NEXUS_USERNAME',
-                   passwordVariable: 'NEXUS_PASSWORD'
-               )]) {
-                   sh '''
-                       echo "$NEXUS_PASSWORD" | docker login localhost:8082 \
-                           -u "$NEXUS_USERNAME" \
-                           --password-stdin
-                   '''
-               }
-           }
-       }
+        stage('Nexus Login') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${NEXUS_CREDENTIALS}",
+                        usernameVariable: 'NEXUS_USERNAME',
+                        passwordVariable: 'NEXUS_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        echo "$NEXUS_PASSWORD" | docker login ${NEXUS_REGISTRY} \
+                            -u "$NEXUS_USERNAME" \
+                            --password-stdin
+                    '''
+                }
+            }
+        }
 
-       stage('Tag for Nexus') {
-           steps {
-               sh '''
-                   docker tag kaustubh10k/ekdantay:${BUILD_NUMBER} \
-                       localhost:8082/ekdantay:${BUILD_NUMBER}
+        stage('Tag for Nexus') {
+            steps {
+                sh '''
+                    docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} \
+                        ${NEXUS_IMAGE}:${BUILD_NUMBER}
 
-                   docker tag kaustubh10k/ekdantay:latest \
-                       localhost:8082/ekdantay:latest
-               '''
-           }
-       }
+                    docker tag ${DOCKER_IMAGE}:latest \
+                        ${NEXUS_IMAGE}:latest
+                '''
+            }
+        }
 
-       stage('Push to Nexus') {
-           steps {
-               sh '''
-                   docker push localhost:8082/ekdantay:${BUILD_NUMBER}
-                   docker push localhost:8082/ekdantay:latest
-               '''
-           }
-       }
+        stage('Push to Nexus') {
+            steps {
+                sh '''
+                    docker push ${NEXUS_IMAGE}:${BUILD_NUMBER}
+                    docker push ${NEXUS_IMAGE}:latest
+                '''
+            }
+        }
+    }
 
     post {
 
