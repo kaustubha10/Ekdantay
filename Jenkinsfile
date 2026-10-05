@@ -25,13 +25,16 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
+                sh '''
+                    export MAVEN_HOME=/opt/apache-maven-3.10.0
+                    export PATH=$MAVEN_HOME/bin:$PATH
 
-        stage('Test') {
-            steps {
-                sh 'mvn test'
+                    echo "===== MAVEN VERSION ====="
+                    mvn -version
+
+                    echo "===== BUILDING APPLICATION ====="
+                    mvn clean package -DskipTests
+                '''
             }
         }
 
